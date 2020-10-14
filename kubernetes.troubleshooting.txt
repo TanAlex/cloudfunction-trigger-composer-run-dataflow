@@ -1,0 +1,70 @@
+https://stackoverflow.com/questions/51859609/cloud-composer-airflow-jobs-stuck
+
+gcloud composer environments describe ${COMPOSER_NAME} \
+    --location ${COMPOSER_LOCATION}
+
+result=$(gcloud composer environments describe ${COMPOSER_NAME} \
+    --location ${COMPOSER_LOCATION} \
+    --format="value(config.gkeCluster)")
+
+REGEXP="zones/(.*)/clusters/(.*)"
+# result=projects/warm-actor-291222/zones/us-central1-a/clusters/us-central1-gdo-composer-de-8c7a92ca-gke
+if [[ "$result" =~ "$REGEXP" ]]; then
+    export GKE_LOCATION=BASH_REMATCH[1]
+    export GKE_CLUSTER=BASH_REMATCH[2]
+    echo "zone: ${GKE_LOCATION} cluster: ${GKE_CLUSTER}"
+fi
+
+export GKE_LOCATION=us-central1-a
+export GKE_CLUSTER=us-central1-gdo-composer-de-7acdc51f-gke
+gcloud container clusters get-credentials ${GKE_CLUSTER} --zone ${GKE_LOCATION}
+
+
+
+k get namespaces
+k get pod 
+k get pod -n composer-1-12-2-airflow-1-10-10-7acdc51f
+k get deployment airflow-scheduler -ncomposer-1-12-2-airflow-1-10-10-7acdc51f
+k get pod -n composer-1-12-2-airflow-1-10-10-7acdc51f
+
+k describe pod/airflow-scheduler-788789ddfb-bb22q -n composer-1-12-2-airflow-1-10-10-7acdc51f
+k get deployment airflow-scheduler -n composer-1-12-2-airflow-1-10-10-7acdc51f -o yaml > /tmp/scheduler.yaml
+
+cat /tmp/scheduler.yaml
+kubectl replace --force -f /tmp/scheduler.yaml
+
+k describe deploy/airflow-scheduler -n composer-1-12-2-airflow-1-10-10-7acdc51f
+k describe pod/airflow-scheduler-668ddffbfc-sf65n -n composer-1-12-2-airflow-1-10-10-7acdc51f
+
+k logs pod/airflow-scheduler-668ddffbfc-sf65n -c gcs-syncd  -n composer-1-12-2-airflow-1-10-10-7acdc51f
+Starting gcs-syncd
+Started sync.sh with pid: 7
+Using base dir: /home/airflow/gcs
+GCS bucket: us-central1-gdo-composer-de-7acdc51f-bucket
+Starting watching for orphan processes and killing them.
+PID=14
+Syncing GCS bucket.
+Syncing dags directory...
+Building synchronization state...
+Starting synchronization...
+Copying gs://us-central1-gdo-composer-de-7acdc51f-bucket/dags/airflow_monitoring.py...
+Copying gs://us-central1-gdo-composer-de-7acdc51f-bucket/dags/quickstart.py...  
+Copying gs://us-central1-gdo-composer-de-7acdc51f-bucket/dags/sample1.py...   
+
+k logs pod/airflow-scheduler-668ddffbfc-sf65n -c airflow-scheduler -n composer-1-12-2-airflow-1-10-10-7acdc51f
+
+k logs pod/airflow-worker-669bc97cc6-9l268 -c airflow-worker -n composer-1-12-2-airflow-1-10-10-7acdc51f
+k logs pod/airflow-worker-669bc97cc6-cds6s -c airflow-worker -n composer-1-12-2-airflow-1-10-10-7acdc51f
+k logs pod/airflow-worker-669bc97cc6-m8xgx -c airflow-worker -n composer-1-12-2-airflow-1-10-10-7acdc51f
+
+k logs pod/airflow-scheduler-668ddffbfc-sf65n -n composer-1-12-2-airflow-1-10-10-7acdc51f
+
+# This is to manually restart WebServers
+# https://stackoverflow.com/questions/53256163/how-to-restart-webserver-in-cloud-composer
+# Set some arbitrary Airflow config value to force a webserver rebuild. 
+gcloud composer environments update ${COMPOSER_NAME} \
+--location=${COMPOSER_LOCATION} --update-airflow-configs=webserver-dummy=true
+
+# Remove the previously set config value. 
+gcloud composer environments update ${COMPOSER_NAME}     --location=${COMPOSER_LOCATION} \
+--remove-airflow-configs=webserver-dummy
