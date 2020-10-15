@@ -1,0 +1,41 @@
+[
+    {"mode": "NULLABLE",
+      "name": "state",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "gender",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "year",
+      "type": "INTEGER"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "name",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "number",
+      "type": "INTEGER"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "created_date",
+      "type": "STRING"
+    },
+    {
+        "mode": "NULLABLE",
+        "name": "filename",
+        "type": "STRING"
+    },
+    {
+        "name": "load_dt",
+        "type": "DATE",
+        "mode": "NULLABLE"
+   }
+]

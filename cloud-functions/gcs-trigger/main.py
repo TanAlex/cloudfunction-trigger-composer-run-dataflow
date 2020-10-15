@@ -136,8 +136,7 @@ def function(event, context):
     print('Updated: {}'.format(event['updated']))
     gs_file_name = f"gs://{event['bucket']}/{event['name']}"
     print(f"bucket_name: {gs_file_name}")
-    data = {'gs_file_name': gs_file_name, 'gs_event': event}
-    trigger_dag(data, context)
+    trigger_dag(event, context)
 
 if __name__ == '__main__':
     data = {'gs_file_name': 'test_file'}
